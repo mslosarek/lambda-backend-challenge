@@ -22,7 +22,7 @@ export async function handler(): Promise<RandomResponse | ErrorResponse> {
       statusCode: 200,
       body: payload,
     }
-  } catch (err: unknown) {
+  } catch (err) {
     return {
       statusCode: 500,
       message: 'Something went wrong',
