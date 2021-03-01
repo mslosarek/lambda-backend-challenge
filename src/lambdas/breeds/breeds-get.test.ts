@@ -5,6 +5,14 @@ const mockedFetch: jest.Mock = fetch as any
 
 jest.mock('node-fetch')
 
+class ResetError extends FetchError {
+  constructor() {
+    super('request failed, reason: socket hang up', 'system')
+    this.code = 'ECONNRESET'
+    this.errno = 'ECONNRESET'
+  }
+}
+
 describe('breeds-get handler', () => {
   afterEach(() => {
     mockedFetch.mockClear()
@@ -39,8 +47,8 @@ describe('breeds-get handler', () => {
     beforeEach(() => {
       mockedFetch.mockReturnValueOnce({
         ok: false,
-        status: 408,
-        statusText: 'Request Timeout',
+        status: 404,
+        statusText: 'Not Found',
         json: () => {
           return null
         },
@@ -50,8 +58,8 @@ describe('breeds-get handler', () => {
     it('returns an error response', async () => {
       const response = await handler()
       expect(response).toEqual({
-        message: 'Request Timeout',
-        statusCode: 408,
+        message: 'Not Found',
+        statusCode: 404,
       })
     })
   })
@@ -87,6 +95,22 @@ describe('breeds-get handler', () => {
       expect(response).toEqual({
         message: 'Something went wrong',
         statusCode: 500,
+      })
+    })
+  })
+
+  describe('when the api does not return a value', () => {
+    beforeEach(() => {
+      mockedFetch.mockImplementationOnce(() => {
+        throw new ResetError()
+      })
+    })
+
+    it('returns an error response', async () => {
+      const response = await handler()
+      expect(response).toEqual({
+        message: 'Request Timeout',
+        statusCode: 408,
       })
     })
   })

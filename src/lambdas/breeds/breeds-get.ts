@@ -48,12 +48,17 @@ export async function handler(): Promise<DogBreedsListResponse | ErrorResponse> 
       body: flattenedDogList,
     }
   } catch (err) {
-    // we can get here under the following conditions:
-    // - the server doesn't respond
-    // - the payloay.message is not in the right structure
-    return {
-      statusCode: 500,
-      message: 'Something went wrong',
+    switch (err.code) {
+      case 'ECONNRESET': // likely means that the server timed out on the request
+        return {
+          statusCode: 408,
+          message: 'Request Timeout',
+        }
+      default:
+        return {
+          statusCode: 500,
+          message: 'Something went wrong',
+        }
     }
   }
 }
