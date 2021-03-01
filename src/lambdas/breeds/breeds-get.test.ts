@@ -48,7 +48,7 @@ describe('breeds-get handler', () => {
     })
 
     it('returns an error response', async () => {
-      const response = (await handler()) as DogBreedsListResponse
+      const response = await handler()
       expect(response).toEqual({
         message: 'Request Timeout',
         statusCode: 408,
@@ -67,7 +67,7 @@ describe('breeds-get handler', () => {
     })
 
     it('returns an error response', async () => {
-      const response = (await handler()) as DogBreedsListResponse
+      const response = await handler()
       expect(response).toEqual({
         message: 'Something went wrong',
         statusCode: 500,
@@ -83,7 +83,7 @@ describe('breeds-get handler', () => {
     })
 
     it('returns an error response', async () => {
-      const response = (await handler()) as DogBreedsListResponse
+      const response = await handler()
       expect(response).toEqual({
         message: 'Something went wrong',
         statusCode: 500,
