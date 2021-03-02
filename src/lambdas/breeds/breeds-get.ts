@@ -1,4 +1,5 @@
 import fetch from 'node-fetch'
+import AbortController from 'abort-controller'
 import { Response, ErrorResponse } from '../types'
 
 export interface DogBreedsListResponse extends Response {
@@ -24,11 +25,19 @@ function reduceBreedResponse(
 
 export async function handler(): Promise<DogBreedsListResponse | ErrorResponse> {
   try {
-    // this could be wrapped in a Promise.race to force a timeout (lambda should stop execution)
-    // or an AbortController could be used: https://github.com/node-fetch/node-fetch#request-cancellation-with-abortsignal
-    
-    // the url could/should be replace with a environment variable or something similar
-    const res = await fetch('https://dog.ceo/api/breeds/list/all')
+    const abortController = new AbortController()
+
+    // timeout after 6 seconds
+    // this could/should be an environment variable or something similar
+    const abortTimeout = setTimeout(() => {
+      abortController.abort()
+    }, 6000)
+
+    // the url this could/should be an environment variable or something similar
+    const res = await fetch('https://dog.ceo/api/breeds/list/all', {
+      signal: abortController.signal,
+    })
+    clearTimeout(abortTimeout)
 
     if (!res.ok) {
       return {
@@ -48,8 +57,11 @@ export async function handler(): Promise<DogBreedsListResponse | ErrorResponse> 
       body: flattenedDogList,
     }
   } catch (err) {
-    switch (err.code) {
+    const errorType = err.code || err.type
+
+    switch (errorType) {
       case 'ECONNRESET': // likely means that the server timed out on the request
+      case 'aborted': // server took too long to respond ans was aborted
         return {
           statusCode: 408,
           message: 'Request Timeout',
