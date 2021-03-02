@@ -1,5 +1,5 @@
 import fetch from 'node-fetch'
-import { Response, ErrorResponse } from './types'
+import { Response, ErrorResponse } from '../types'
 
 interface RandomResponse extends Response {
   body: RandomDog
